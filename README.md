@@ -17,3 +17,16 @@ Calculate p-values: The p-value is the proportion of permuted trees that have a 
 Interpret the results: If the null hypothesis is rejected, we can conclude that the observed clustering is statistically significant. We can then examine the clustering to see if it corresponds to any known biological or ecological patterns.
 
 It's worth noting that there are many different ways to define the null hypothesis and test statistic, and the choice of these parameters can affect the results of the test. Additionally, permutation tests can be computationally intensive, especially for large trees or when many permutations are required to generate accurate null distributions.
+
+
+# Dependencies
+```
+pandas (v1.0.0 or later)
+numpy (v1.18.0 or later)
+treeswift (v1.0.0 or later)
+queue (included in Python standard library)
+tqdm (v4.0.0 or later)
+seaborn (v0.10.0 or later)
+matplotlib (v3.0.0 or later)
+Note: These are minimum version requirements and newer versions of the packages may work as well.
+```
