@@ -28,5 +28,8 @@ queue (included in Python standard library)
 tqdm (v4.0.0 or later)
 seaborn (v0.10.0 or later)
 matplotlib (v3.0.0 or later)
-Note: These are minimum version requirements and newer versions of the packages may work as well.
+
 ```
+Note: These are minimum version requirements and newer versions of the packages may work as well.
+
+
