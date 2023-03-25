@@ -1,4 +1,4 @@
-# Clustering-significance-test
+## Clustering-significance-test
 
 A Permutation test for identification of statistically significant clusters in a phylogenetic tree
 
@@ -23,7 +23,7 @@ Interpret the results: If the null hypothesis is rejected, we can conclude that 
 
 
 
-# Dependencies
+## Dependencies
 ```
 pandas (v1.0.0 or later)
 numpy (v1.18.0 or later)
