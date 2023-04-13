@@ -21,7 +21,11 @@ $$ Purity = \frac 1 N \sum_{i=1}^k max_j | c_i \cap t_j | $$
 
 Interpret the results: If the null hypothesis is rejected, we can conclude that the observed clustering is statistically significant. 
 
+## How to run
 
+```
+python permutation_test.py -t viruses.tree -m meta.tsv -i1 1 -i2 3 -p 0.05 -r 10000 -o output_dir
+```
 
 ## Dependencies
 ```
