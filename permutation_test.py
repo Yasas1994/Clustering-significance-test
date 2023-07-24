@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import argparse 
 import os
 
+# parse arguments 
 parser = argparse.ArgumentParser(
                     prog='Clustering significance test',
                     description='Permutation test to test the statistical significance of clustering of different metadata annotations.',
@@ -16,14 +17,14 @@ parser = argparse.ArgumentParser(
 parser.add_argument('-t','--tree', help='tree file in nexus format')  
 parser.add_argument('-m', '--meta' , help='metadata file in tsv file')    
 parser.add_argument('-i1', help='index of the column with tree lables' ) 
-parser.add_argument('-i2', help='index of the column with lables to test' ) 
+parser.add_argument('-i2', help='index of the column with lables to test') 
 parser.add_argument('-p','--p_value',help='significance level for cluster selection', default=0.05)
 parser.add_argument('-r','--replicates',help='number of permutation replicates', default=10000)
-parser.add_argument('-o','--out', 'output directory path')
+parser.add_argument('-o','--out', help='output directory path')
 args = parser.parse_args()
 
 if not os.path.exists(args.out):
-   os.makedirs(args.out)
+    os.makedirs(args.out)
 
 # these functions were grabbed from https://github.com/niemasd/TreeCluster/blob/master/TreeCluster.py
 # please cite this paper if you use this script 
@@ -88,15 +89,14 @@ def cut(node):
 
 tree = treeswift.read_tree_nexus(args.tree)
 annot = pd.read_table(args.meta, header=None)
-annot[3] = annot[args.i1] + '_'+ annot[args.i2] #create leaf lables
-annot.columns = ['seqid','annot_1','leaf_lab']
+annot.columns = ['leaf_lab','annot_1']
 #clust = root_dist(tree['tree_1'], 4, 1 ) #get distance based clusters
 
 
 #get all internal nodes from a tree. consider each branch as a cluster
 clust_n = 0
 clust_leaf = []
-for branch in tree['tree_1'].traverse_postorder():
+for branch in tree['tree1'].traverse_postorder():  # Nexus file tree is not always tree_1 can also be tree1 
        if not branch.is_leaf():
             tmp_ = []
             for leaf in branch.traverse_leaves():
@@ -148,12 +148,11 @@ print(f"average cluster purity (permuted) : { np.mean(simulated):.2f} {u'±'}{np
 significance_level = args.p_value
 
 simulations_greater_than_observed_cluster= sum(
-    simulated_results_per_cluster >= observed_difference_per_cluster
-)
+    simulated_results_per_cluster >= observed_difference_per_cluster)
 num_simulations_cluster = simulated_results_per_cluster.shape[0]
 p_value = simulations_greater_than_observed_cluster / num_simulations_cluster
 # Boolean which is True if significant, False otherwise
-significant_or_not_cluster = p_value < significance_level
+significant_or_not_cluster = p_value < float(significance_level)  ## significance_level is interpreted as string
 
 per_clust = pd.DataFrame(zip(np.arange(significant_or_not_cluster.shape[0]),significant_or_not_cluster,p_value, annot['cluster'].value_counts().sort_index().to_list()))
 per_clust.columns = ['clusters','is_significant','p_value','cluster_size']
@@ -166,11 +165,10 @@ simulated_results=np.array(simulated)
 significance_level = args.p_value
 
 simulations_greater_than_observed= sum(
-    simulated_results >= observed_difference_in_nps
-)
+    simulated_results >= observed_difference_in_nps)
 num_simulations = simulated_results.shape[0]
 p_value = simulations_greater_than_observed / num_simulations
-significant_or_not = p_value < significance_level
+significant_or_not = p_value < float(significance_level) ## significance_level is interpreted as string
 
 # Plot permutation simulations
 density_plot = sns.kdeplot(simulated, fill=True, label='Permuted')
@@ -178,8 +176,7 @@ density_plot.set(
     xlabel='Absolute Difference cluster purity',
     ylabel='Proportion of Simulations',
     title=f'Permutation test for determination\n of cluster-label congruence \n{ "Test: Passed" if significant_or_not else "Test:Failed"} (p = {p_value})'
-    
-)
+    )
 
 # Add a line to show the actual difference observed in the data
 density_plot.axvline(
