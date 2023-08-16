@@ -92,7 +92,6 @@ annot = pd.read_table(args.meta, header=None)
 annot.columns = ['leaf_lab','annot_1']
 #clust = root_dist(tree['tree_1'], 4, 1 ) #get distance based clusters
 
-
 #get all internal nodes from a tree. consider each branch as a cluster
 clust_n = 0
 clust_leaf = []
@@ -126,12 +125,12 @@ max_per_cluster = tmp.groupby('cluster').max()
 observed_difference_in_nps=sum(max_per_cluster['counts'])/sum(sum_cluster['counts']) #cluster purity https://stats.stackexchange.com/questions/95731/how-to-calculate-purity
 observed_difference_per_cluster = np.array(max_per_cluster['counts']/sum_cluster['counts'])
 
-print(f"global cluster purity: {observed_difference_in_nps : .2f}")
+print(f"global cluster purity: {observed_difference_in_nps : .5f}")
 
 #simulation
 simulated = []
 simulated_per_group = []
-for _ in trange(1000):
+for _ in trange(int(args.replicates)):
     annot['tmp'] = annot[column].sample(frac=1).values
     tmp2 = annot.groupby('cluster')['tmp'].value_counts().sort_index()
     tmp2 = pd.DataFrame(tmp2)
@@ -143,7 +142,7 @@ for _ in trange(1000):
     simulated.append(sum(max_per_cluster2['counts'])/sum(sum_cluster2['counts']))
 
 simulated_results_per_cluster = np.array(simulated_per_group)
-print(f"average cluster purity (permuted) : { np.mean(simulated):.2f} {u'±'}{np.std(simulated) : .2f}")
+print(f"average cluster purity (permuted) : { np.mean(simulated):.2f} {u'±'}{np.std(simulated) : .5f}")
 
 significance_level = args.p_value
 
