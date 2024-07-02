@@ -2,24 +2,27 @@ import pandas as pd
 import numpy as np
 import treeswift # please cite https://github.com/niemasd/TreeSwift 
 from queue import PriorityQueue,Queue
-from tqdm.notebook import trange, tqdm
+from tqdm import tqdm
 import seaborn as sns
 import matplotlib.pyplot as plt
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import argparse 
 import os
+import sys
 
 parser = argparse.ArgumentParser(
                     prog='Clustering significance test',
                     description='Permutation test to test the statistical significance of clustering of different metadata annotations.',
                     epilog='https://github.com/Yasas1994/Clustering-significance-test')
 
-parser.add_argument('-t','--tree', help='tree file in nexus format')  
-parser.add_argument('-m', '--meta' , help='metadata file in tsv file')    
-parser.add_argument('-i1', help='index of the column with tree lables' ) 
-parser.add_argument('-i2', help='index of the column with lables to test' ) 
-parser.add_argument('-p','--p_value',help='significance level for cluster selection', default=0.05)
-parser.add_argument('-r','--replicates',help='number of permutation replicates', default=10000)
-parser.add_argument('-o','--out', 'output directory path')
+parser.add_argument('-t','--tree', help='tree file in nexus format', required=True)  
+parser.add_argument('-m', '--meta' , help='metadata file in tsv file', required=True)    
+parser.add_argument('-i1', help='index of the column with tree lables' ,type=int) 
+parser.add_argument('-i2', help='index of the column with annotation lables to test', type=int) 
+parser.add_argument('-p','--p_value',help='significance level for cluster selection', default=0.05, type=float)
+parser.add_argument('-r','--replicates',help='number of permutation replicates', default=10000, type=int)
+parser.add_argument('-w','--workers',help='number of workers', default=10, type=int)
+parser.add_argument('-o','--out', help='output directory path', required=True)
 args = parser.parse_args()
 
 if not os.path.exists(args.out):
@@ -88,8 +91,10 @@ def cut(node):
 
 tree = treeswift.read_tree_nexus(args.tree)
 annot = pd.read_table(args.meta, header=None)
-annot[3] = annot[args.i1] + '_'+ annot[args.i2] #create leaf lables
-annot.columns = ['seqid','annot_1','leaf_lab']
+
+annot.rename(columns={args.i1 : 'leaf_lab'}, inplace=True)
+#print(annot.head())
+#annot.columns = ['seqid','annot_1','annot_2','leaf_lab']
 #clust = root_dist(tree['tree_1'], 4, 1 ) #get distance based clusters
 
 
@@ -108,30 +113,34 @@ for branch in tree['tree_1'].traverse_postorder():
 
 
 clust_leaf=pd.DataFrame(clust_leaf)
+#print(clust_leaf.head())
 clust_leaf.columns = ['cluster', 'leaf_lab']
-
+#print(clust_leaf.head())
 annot = pd.merge(clust_leaf,annot,
                  right_on='leaf_lab', 
                  left_on='leaf_lab') #add annotations to clusters
 
-column = 'annot_1' #only chnage this colum 
+column = args.i2 #only chnage this colum 
 #column2 = 'tmp' #simulation output is saved here
 
 tmp = annot.groupby('cluster')[column].value_counts().sort_index()
 tmp = pd.DataFrame(tmp)
 tmp.columns = ['counts']
 tmp.reset_index(inplace=True)
+
 sum_cluster = tmp.groupby('cluster').sum(numeric_only=True)
 max_per_cluster = tmp.groupby('cluster').max()
 observed_difference_in_nps=sum(max_per_cluster['counts'])/sum(sum_cluster['counts']) #cluster purity https://stats.stackexchange.com/questions/95731/how-to-calculate-purity
 observed_difference_per_cluster = np.array(max_per_cluster['counts']/sum_cluster['counts'])
 
-print(f"global cluster purity: {observed_difference_in_nps : .2f}")
+print(f"global cluster purity: {observed_difference_in_nps : .2f}", file=sys.stderr)
 
 #simulation
 simulated = []
 simulated_per_group = []
-for _ in trange(1000):
+# for _ in tqdm(range(args.replicates)):
+def simulate(annot):
+    annot = annot.copy()
     annot['tmp'] = annot[column].sample(frac=1).values
     tmp2 = annot.groupby('cluster')['tmp'].value_counts().sort_index()
     tmp2 = pd.DataFrame(tmp2)
@@ -139,11 +148,22 @@ for _ in trange(1000):
     tmp2.reset_index(inplace=True)
     sum_cluster2 = tmp2.groupby('cluster').sum(numeric_only=True)
     max_per_cluster2 = tmp2.groupby('cluster').max()
-    simulated_per_group.append(max_per_cluster2['counts']/sum_cluster2['counts'])
-    simulated.append(sum(max_per_cluster2['counts'])/sum(sum_cluster2['counts']))
+    # simulated_per_group.append(max_per_cluster2['counts']/sum_cluster2['counts'])
+    # simulated.append(sum(max_per_cluster2['counts'])/sum(sum_cluster2['counts']))
+    return [max_per_cluster2['counts']/sum_cluster2['counts'],sum(max_per_cluster2['counts'])/sum(sum_cluster2['counts'])]
+
+with ThreadPoolExecutor(max_workers=args.workers) as executor:
+            # Submit tasks to the executor
+    futures = [executor.submit(simulate,annot) for _ in range(args.replicates)]
+    
+    # Retrieve and print the results
+    for future in tqdm(as_completed(futures),total=args.replicates):
+        result = future.result()
+        simulated_per_group.append(result[0])
+        simulated.append(result[1])
 
 simulated_results_per_cluster = np.array(simulated_per_group)
-print(f"average cluster purity (permuted) : { np.mean(simulated):.2f} {u'±'}{np.std(simulated) : .2f}")
+print(f"average global cluster purity (permuted) : { np.mean(simulated):.2f} {u'±'}{np.std(simulated) : .2f}",file=sys.stderr)
 
 significance_level = args.p_value
 
@@ -165,6 +185,7 @@ annot.to_csv(os.path.join(args.out,'clusters.csv'),index=None)
 simulated_results=np.array(simulated)
 significance_level = args.p_value
 
+# check whether the cluster purity increases with shuffling - ideally the cluster purity should decrease 
 simulations_greater_than_observed= sum(
     simulated_results >= observed_difference_in_nps
 )
@@ -194,4 +215,5 @@ plt.legend(
     loc='upper right'
 )
 plt.xticks(rotation=45)
+plt.tight_layout()
 plt.savefig(os.path.join(args.out,'global_significance.png'))

@@ -21,13 +21,21 @@ $$ Purity = \frac 1 N \sum_{i=1}^k max_j | c_i \cap t_j | $$
 
 Interpret the results: If the null hypothesis is rejected, we can conclude that the observed clustering is statistically significant. 
 
-## How to run?
+### How to run?
 
 ```
-python permutation_test.py -t viruses.tree -m meta.tsv -i1 1 -i2 3 -p 0.05 -r 10000 -o output_dir
-```
+python pemutation_test.py -m Phenuiviridae.tsv -t Phenuiviridae.tree -o ./test -i1 3 -i2 2 -p 0.05 -r 1000
 
-## Dependencies
+```
+### Results 
+1. **clusters.csv** 
+colums -> cluster_number, leaf_lab, [meta data]
+2. **global_significance.png** 
+shows the difference of cluster purity changes after shuffling compared to the null distribution
+3. **significant_clusters.csv**
+ colums -> cluster_number, is_significant, p_value, cluster_size
+
+### Dependencies
 ```
 pandas (v1.0.0 or later)
 numpy (v1.18.0 or later)
