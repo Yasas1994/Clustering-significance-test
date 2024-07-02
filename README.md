@@ -28,12 +28,9 @@ python pemutation_test.py -m Phenuiviridae.tsv -t Phenuiviridae.tree -o ./test -
 
 ```
 ### Results 
-1. **clusters.csv** 
-colums -> cluster_number, leaf_lab, [meta data]
-2. **global_significance.png** 
-shows the difference of cluster purity changes after shuffling compared to the null distribution
-3. **significant_clusters.csv**
- colums -> cluster_number, is_significant, p_value, cluster_size
+1. **clusters.csv** <br> colums -> cluster_number, leaf_lab, [meta data]
+2. **global_significance.png** <br> shows how cluster purity changes after shuffling compared to the null distribution
+3. **significant_clusters.csv**<br> colums -> cluster_number, is_significant, p_value, cluster_size
 
 ### Dependencies
 ```
