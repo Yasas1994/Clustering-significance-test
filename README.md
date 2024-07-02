@@ -23,14 +23,52 @@ Interpret the results: If the null hypothesis is rejected, we can conclude that 
 
 ### How to run?
 
+
 ```
 python pemutation_test.py -m Phenuiviridae.tsv -t Phenuiviridae.tree -o ./test -i1 3 -i2 2 -p 0.05 -r 1000
 
 ```
 ### Results 
-1. **clusters.csv** <br> colums -> cluster_number, leaf_lab, [meta data]
+1. **clusters.csv**
+```
+┌─────────┬────────────────────────┬────────────┬─────────────┬───────┐
+│ cluster ┆ leaf_lab               ┆ 0          ┆ 1           ┆ 2     │
+│ ---     ┆ ---                    ┆ ---        ┆ ---         ┆ ---   │
+│ i64     ┆ str                    ┆ str        ┆ str         ┆ i64   │
+╞═════════╪════════════════════════╪════════════╪═════════════╪═══════╡
+│ 0       ┆ Bandavirus_QNR55439.1  ┆ QNR55439.1 ┆ Bandavirus  ┆ 56763 │
+│ 0       ┆ Phlebovirus_AEA29884.1 ┆ AEA29884.1 ┆ Phlebovirus ┆ 2346  │
+│ 0       ┆ Phlebovirus_ADZ95575.1 ┆ ADZ95575.1 ┆ Phlebovirus ┆ 9855  │
+│ 0       ┆ Bandavirus_QEL09442.1  ┆ QEL09442.1 ┆ Bandavirus  ┆ 9     │
+│ 0       ┆ Bandavirus_USH08263.1  ┆ USH08263.1 ┆ Bandavirus  ┆ 6587  │
+│ …       ┆ …                      ┆ …          ┆ …           ┆ …     │
+│ 515     ┆ Bandavirus_AHE38316.1  ┆ AHE38316.1 ┆ Bandavirus  ┆ 654   │
+│ 515     ┆ Bandavirus_USH07876.1  ┆ USH07876.1 ┆ Bandavirus  ┆ 45437 │
+│ 515     ┆ Bandavirus_QNR55479.2  ┆ QNR55479.2 ┆ Bandavirus  ┆ 6587  │
+│ 515     ┆ Bandavirus_USH08354.1  ┆ USH08354.1 ┆ Bandavirus  ┆ 1771  │
+│ 515     ┆ Bandavirus_QNR55459.1  ┆ QNR55459.1 ┆ Bandavirus  ┆ 654   │
+└─────────┴────────────────────────┴────────────┴─────────────┴───────┘
+
+```
 2. **global_significance.png** <br> shows how cluster purity changes after shuffling compared to the null distribution
-3. **significant_clusters.csv**<br> colums -> cluster_number, is_significant, p_value, cluster_size
+![global_significance](https://github.com/Yasas1994/Clustering-significance-test/assets/34155351/ab1cdd94-6446-495b-b050-ee40f18d641b)
+
+3. **significant_clusters.csv**<br> 
+```
+┌──────────┬────────────────┬─────────┬──────────────┐
+│ clusters ┆ is_significant ┆ p_value ┆ cluster_size │
+│ ---      ┆ ---            ┆ ---     ┆ ---          │
+│ i64      ┆ bool           ┆ f64     ┆ i64          │
+╞══════════╪════════════════╪═════════╪══════════════╡
+│ 23       ┆ true           ┆ 0.044   ┆ 32           │
+│ 24       ┆ true           ┆ 0.01    ┆ 33           │
+│ 25       ┆ true           ┆ 0.03    ┆ 37           │
+│ 313      ┆ true           ┆ 0.02    ┆ 14           │
+│ 314      ┆ true           ┆ 0.02    ┆ 17           │
+│ 315      ┆ true           ┆ 0.03    ┆ 21           │
+└──────────┴────────────────┴─────────┴──────────────┘
+
+```
 
 ### Dependencies
 ```
